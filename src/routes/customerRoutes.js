@@ -5,4 +5,6 @@ const customerController = require("../controllers/customerController")
 
 router.get('/allCustomers', customerController.getAllCustomers);
 router.post('/register', customerController.register);
+router.post('/login', customerController.login);
+router.post('/login/', customerController.login);
 module.exports=router;

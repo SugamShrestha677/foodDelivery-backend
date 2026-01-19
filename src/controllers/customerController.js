@@ -9,15 +9,19 @@ const register = async (req, res) => {
         if (!username || !fullname || !email || !password || !phone) {
              return res.status(400).json({ error: "All fields are required." });
         }
-        const existingUser = await Customer.findOne({email, username});
+       const existingUser = await Customer.findOne({
+    $or: [
+        { email: email.toLowerCase() },
+        { username }
+    ]
+});
         if (existingUser) {
             return res.status(400).json({ error: "User already exists" });
         }
-        const hashedPassword = await bcrypt.hash(password, 10);
         const cutomer = new Customer({
             username,
-            email,
-            password: hashedPassword,
+            email:email.toLowerCase() ,
+            password,
             fullname,
             phone
 
@@ -38,30 +42,32 @@ const login = async (req, res) => {
       return res.status(400).json({ error: "Email and password are required" });
     }
 
-    const customer = await Customer.findOne({ email });
+    const customer = await Customer.findOne({ email:email.toLowerCase() });
     if (!customer) {
       return res.status(400).json({ error: "Invalid email or password" });
     }
 
-    const isMatch = await bcrypt.compare(password, user.password);
+    const isMatch = await bcrypt.compare(password, customer.password);
     if (!isMatch) {
       return res.status(400).json({ error: "Invalid email or password" });
     }
-    const token = jwt.sign({ id: user._id }, config.JWT_SECRET, {
+    console.log("Stored password:", customer.password);
+    console.log("Login input password:", password);
+    const token = jwt.sign({ id: customer._id }, config.JWT_SECRET, {
       expiresIn: config.JWT_EXPIRATION,
     });
 
-    // Exclude password before sending back user data
-    const { password: _ , ...safeUser } = user.toObject();
+    // Exclude password before sending back customer data
+    const { password: _ , ...safecustomer } = customer.toObject();
 
     res.status(200).json({
       message: "Login successful",
       token,
-      user: safeUser, // optional, sends user data without password
+      customer: safecustomer, // optional, sends customer data without password
     });
     
     } catch (error) {
-        console.log("Error logging in user:", error);
+        console.log("Error logging in customer:", error);
         res.status(500).json({error:"Server error. Please try again later."})
     }
 }
