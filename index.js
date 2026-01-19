@@ -1,11 +1,13 @@
 const express = require('express');
 const app = express();
+const cors = require('cors');
 const db = require('./src/config/db');
 const config = require("./src/config/config");
 const customerRoutes = require('./src/routes/customerRoutes')
 app.get("/", (req,res)=> {
     res.send("This is the trial project of foodDelivery!");
 })
+app.use(cors());
 app.use(express.json());
 app.use("/api",customerRoutes);
 
